@@ -7,120 +7,115 @@ import PasswordResetToken from "../../models/PasswordResetToken.js";
 import {
   generateAccessToken,
   generateRefreshToken,
-  verifyRefreshToken
+  verifyRefreshToken,
 } from "../../utils/jwt.js";
 
-import { sendEmail } from "../../services/email.service.js";
+import EmailService from "../../services/email.service.js";
 
 import BadRequestError from "../../utils/errors/BadRequestError.js";
 import UnauthorizedError from "../../utils/errors/UnauthorizedError.js";
 
 class AuthService {
   async register(payload) {
-    const existingUser =
-      await User.findOne({
-        email: payload.email
-      });
+    const existingUser = await User.findOne({
+      email: payload.email,
+    });
 
     if (existingUser) {
-      throw new BadRequestError(
-        "User already exists"
-      );
+      throw new BadRequestError("User already exists");
     }
 
-    const user =
-      await User.create(payload);
+    const user = await User.create(payload);
 
-    const accessToken =
-      generateAccessToken({
-        userId: user._id,
-        role: user.role
-      });
+    const accessToken = generateAccessToken({
+      userId: user._id,
+      role: user.role,
+    });
 
-    const refreshToken =
-      generateRefreshToken({
-        userId: user._id
-      });
+    const refreshToken = generateRefreshToken({
+      userId: user._id,
+    });
 
     await RefreshToken.create({
       user: user._id,
       token: refreshToken,
-      expiresAt:
-        new Date(
-          Date.now() +
-            7 * 24 * 60 * 60 * 1000
-        )
+      expiresAt: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      ),
     });
+
+    const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${user._id}`;
+
+    try {
+      await EmailService.sendVerificationEmail({
+        email: user.email,
+        name: user.name,
+        verificationUrl,
+      });
+    } catch (error) {
+      console.error(
+        "Failed to send verification email:",
+        error.message
+      );
+    }
 
     return {
       user,
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 
   async login(email, password) {
-    const user =
-      await User.findOne({
-        email
-      }).select("+password");
+    const user = await User.findOne({
+      email,
+    }).select("+password");
 
     if (!user) {
-      throw new UnauthorizedError(
-        "Invalid credentials"
-      );
+      throw new UnauthorizedError("Invalid credentials");
     }
 
-    const isValid =
-      await user.comparePassword(
-        password
-      );
+    const isValid = await user.comparePassword(
+      password
+    );
 
     if (!isValid) {
-      throw new UnauthorizedError(
-        "Invalid credentials"
-      );
+      throw new UnauthorizedError("Invalid credentials");
     }
 
-    const accessToken =
-      generateAccessToken({
-        userId: user._id,
-        role: user.role
-      });
+    const accessToken = generateAccessToken({
+      userId: user._id,
+      role: user.role,
+    });
 
-    const refreshToken =
-      generateRefreshToken({
-        userId: user._id
-      });
+    const refreshToken = generateRefreshToken({
+      userId: user._id,
+    });
 
     await RefreshToken.create({
       user: user._id,
       token: refreshToken,
-      expiresAt:
-        new Date(
-          Date.now() +
-            7 * 24 * 60 * 60 * 1000
-        )
+      expiresAt: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      ),
     });
 
     return {
       user,
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
 
   async refresh(refreshToken) {
-    const decoded =
-      verifyRefreshToken(
-        refreshToken
-      );
+    const decoded = verifyRefreshToken(
+      refreshToken
+    );
 
-    const tokenDoc =
-      await RefreshToken.findOne({
-        token: refreshToken,
-        revoked: false
-      });
+    const tokenDoc = await RefreshToken.findOne({
+      token: refreshToken,
+      revoked: false,
+    });
 
     if (!tokenDoc) {
       throw new UnauthorizedError(
@@ -132,79 +127,64 @@ class AuthService {
 
     await tokenDoc.save();
 
-    const accessToken =
-      generateAccessToken({
-        userId: decoded.userId
-      });
+    const accessToken = generateAccessToken({
+      userId: decoded.userId,
+    });
 
-    const newRefreshToken =
-      generateRefreshToken({
-        userId: decoded.userId
-      });
+    const newRefreshToken = generateRefreshToken({
+      userId: decoded.userId,
+    });
 
     await RefreshToken.create({
       user: decoded.userId,
       token: newRefreshToken,
-      expiresAt:
-        new Date(
-          Date.now() +
-            7 * 24 * 60 * 60 * 1000
-        )
+      expiresAt: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      ),
     });
 
     return {
       accessToken,
-      refreshToken:
-        newRefreshToken
+      refreshToken: newRefreshToken,
     };
   }
 
   async forgotPassword(email) {
-    const user =
-      await User.findOne({ email });
+    const user = await User.findOne({
+      email,
+    });
 
     if (!user) {
       return;
     }
 
-    const token =
-      crypto
-        .randomBytes(32)
-        .toString("hex");
+    const token = crypto
+      .randomBytes(32)
+      .toString("hex");
 
     await PasswordResetToken.create({
       user: user._id,
       token,
-      expiresAt:
-        new Date(
-          Date.now() +
-            60 * 60 * 1000
-        )
+      expiresAt: new Date(
+        Date.now() + 60 * 60 * 1000
+      ),
     });
 
-    const resetUrl =
-      `${process.env.CLIENT_URL}/reset-password/${token}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
-    await sendEmail({
-      to: user.email,
-      subject:
-        "Reset Password",
-      html: `
-      <h2>Password Reset</h2>
-      <a href="${resetUrl}">
-      Reset Password
-      </a>
-      `
+    await EmailService.sendResetPasswordEmail({
+      email: user.email,
+      name: user.name,
+      resetUrl,
     });
+
+    return true;
   }
 
-  async resetPassword(
-    token,
-    password
-  ) {
+  async resetPassword(token, password) {
     const resetToken =
       await PasswordResetToken.findOne({
-        token
+        token,
       });
 
     if (!resetToken) {
@@ -213,26 +193,22 @@ class AuthService {
       );
     }
 
-    if (
-      resetToken.expiresAt <
-      new Date()
-    ) {
+    if (resetToken.expiresAt < new Date()) {
       throw new BadRequestError(
         "Expired token"
       );
     }
 
-    const user =
-      await User.findById(
-        resetToken.user
-      ).select("+password");
+    const user = await User.findById(
+      resetToken.user
+    ).select("+password");
 
     user.password = password;
 
     await user.save();
 
     await PasswordResetToken.deleteOne({
-      _id: resetToken._id
+      _id: resetToken._id,
     });
 
     return true;

@@ -12,6 +12,8 @@ import {
   registerNotificationSocket
 } from "./modules/notifications/notification.socket.js";
 
+import "./workers/index.js";
+
 console.log("PORT:", process.env.PORT);
 console.log("CLIENT_URL:", process.env.CLIENT_URL);
 console.log(

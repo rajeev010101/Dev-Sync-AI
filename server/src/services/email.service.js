@@ -1,25 +1,87 @@
-import nodemailer from "nodemailer";
+import transporter from "../config/mail.js";
 
-const transporter =
-  nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+import welcomeTemplate from "../templates/emails/welcome.template.js";
+import verificationTemplate from "../templates/emails/verification.template.js";
+import resetPasswordTemplate from "../templates/emails/reset-password.template.js";
+import subscriptionTemplate from "../templates/emails/subscription.template.js";
 
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-
-export const sendEmail = async ({
-  to,
-  subject,
-  html
-}) => {
-  return transporter.sendMail({
-    from: process.env.EMAIL_USER,
+class EmailService {
+  async send({
     to,
     subject,
-    html
-  });
-};
+    html,
+    text,
+    attachments = [],
+  }) {
+    return transporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to,
+      subject,
+      html,
+      text,
+      attachments,
+    });
+  }
+
+  async sendWelcomeEmail({
+    email,
+    name,
+  }) {
+    return this.send({
+      to: email,
+      subject: "Welcome to DevSync AI",
+      html: welcomeTemplate(name),
+    });
+  }
+
+  async sendVerificationEmail({
+    email,
+    name,
+    verificationUrl,
+  }) {
+    return this.send({
+      to: email,
+      subject: "Verify your email",
+      html: verificationTemplate(
+        name,
+        verificationUrl
+      ),
+    });
+  }
+
+  async sendResetPasswordEmail({
+    email,
+    name,
+    resetUrl,
+  }) {
+    return this.send({
+      to: email,
+      subject: "Reset your password",
+      html: resetPasswordTemplate(
+        name,
+        resetUrl
+      ),
+    });
+  }
+
+  async sendSubscriptionEmail({
+    email,
+    name,
+    plan,
+    amount,
+    renewalDate,
+  }) {
+    return this.send({
+      to: email,
+      subject: "Subscription Activated",
+      html: subscriptionTemplate(
+        name,
+        plan,
+        amount,
+        renewalDate
+      ),
+    });
+  }
+}
+
+export default new EmailService();

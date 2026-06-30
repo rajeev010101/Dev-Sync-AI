@@ -3,7 +3,7 @@ dotenv.config();
 
 import OpenAI from "openai";
 
-console.log("KEY:", process.env.OPENAI_API_KEY);
+console.log("OPENAI KEY EXISTS:", !!process.env.OPENAI_API_KEY);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

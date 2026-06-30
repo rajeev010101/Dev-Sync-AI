@@ -1,24 +1,28 @@
-import { Worker }
-from "bullmq";
+import BaseWorker from "./base.worker.js";
+import AIJobs from "../jobs/ai/index.js";
 
-new Worker(
-  "ai-processing",
+export default new BaseWorker(
+  "ai",
 
   async (job) => {
+    const jobHandler = AIJobs[job.name];
+
+    if (!jobHandler) {
+      throw new Error(
+        `Unknown AI Job: ${job.name}`
+      );
+    }
+
     console.log(
-      "Processing AI job",
-      job.id
+      `Processing AI Job: ${job.name}`
     );
 
-    // process message
+    const result = await jobHandler(job);
+
+    return result;
   },
 
   {
-    connection: {
-      host:
-        "localhost",
-
-      port: 6379
-    }
+    concurrency: 10
   }
 );

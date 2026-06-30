@@ -1,23 +1,25 @@
 import BaseWorker from "./base.worker.js";
-import UploadJobs from "../jobs/uploads/index.js";
+import AnalyticsJobs from "../jobs/analytics/index.js";
 
 export default new BaseWorker(
-  "upload",
+  "analytics",
+
   async (job) => {
-    const handler = UploadJobs[job.name];
+    const handler = AnalyticsJobs[job.name];
 
     if (!handler) {
       throw new Error(
-        `Unknown Upload Job: ${job.name}`
+        `Unknown Analytics Job: ${job.name}`
       );
     }
 
     console.log(
-      `Processing Upload Job: ${job.name}`
+      `Processing Analytics Job: ${job.name}`
     );
 
     return handler(job);
   },
+
   {
     concurrency: 5,
   }
