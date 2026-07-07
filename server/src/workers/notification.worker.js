@@ -1,28 +1,26 @@
 import BaseWorker from "./base.worker.js";
+import NotificationJobs from "../jobs/notifications/index.js";
 
 export default new BaseWorker(
   "notification",
 
   async (job) => {
-    switch (job.name) {
-      case "notification.send":
-        console.log(
-          "Notification"
-        );
+    const handler = NotificationJobs[job.name];
 
-        break;
-
-      case "notification.broadcast":
-        console.log(
-          "Broadcast"
-        );
-
-        break;
-
-      default:
-        throw new Error(
-          `Unknown Notification Job`
-        );
+    if (!handler) {
+      throw new Error(
+        `Unknown Notification Job: ${job.name}`
+      );
     }
+
+    console.log(
+      `Processing Notification Job: ${job.name}`
+    );
+
+    return handler(job);
+  },
+
+  {
+    concurrency: 10,
   }
 );
