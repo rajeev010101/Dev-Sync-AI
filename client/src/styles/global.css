@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-primary: #4f46e5;
+  --color-muted: #e2e8f0;
+}
+
+@layer base {
+  * { @apply border-slate-200; }
+  html { @apply antialiased; }
+  body { @apply m-0 min-w-80 bg-background text-foreground; }
+  #root { @apply min-h-screen; }
+}
+
+.dark {
+  --color-background: #0f172a;
+  --color-foreground: #f8fafc;
+  --color-muted: #334155;
+}

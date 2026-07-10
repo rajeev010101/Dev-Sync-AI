@@ -18,6 +18,20 @@ class AIRepository {
     });
   }
 
+  async getUserChats(userId) {
+    return AIChat.find({ user: userId }).sort({ updatedAt: -1 });
+  }
+
+  async updateChatTitle(chatId, userId, title) {
+    return AIChat.findOneAndUpdate({ _id: chatId, user: userId }, { title }, { new: true });
+  }
+
+  async deleteChat(chatId, userId) {
+    const chat = await AIChat.findOneAndDelete({ _id: chatId, user: userId });
+    if (chat) await AIMessage.deleteMany({ chat: chatId });
+    return chat;
+  }
+
   async validateOwnership(
   chatId,
   userId

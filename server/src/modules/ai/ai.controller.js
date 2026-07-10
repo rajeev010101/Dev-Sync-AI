@@ -1,4 +1,5 @@
 import AIService from "./ai.service.js";
+import { initSSE } from "../../streaming/sse.service.js";
 
 class AIController {
   createChat = async (req, res, next) => {
@@ -22,9 +23,7 @@ class AIController {
         req.body.message
       );
 
-      res.json({
-        response: result,
-      });
+      res.json(result);
     } catch (error) {
       next(error);
     }
@@ -48,20 +47,22 @@ class AIController {
 
   streamResponse = async (req, res, next) => {
     try {
-      const { message } = req.body;
-
-      const result = await AIService.streamResponse(
-        req.user.userId,
-        message
-      );
-
-      res.json({
-        response: result,
-      });
+      const { chatId, message } = req.body;
+      initSSE(res);
+      const result = await AIService.streamMessage(req.user.userId, chatId, message, (text) => res.write(`data: ${JSON.stringify({ type: "chunk", text })}\n\n`));
+      res.write(`data: ${JSON.stringify({ type: "done", ...result })}\n\n`);
+      res.end();
     } catch (error) {
-      next(error);
+      if (!res.headersSent) next(error);
+      else res.end();
     }
   };
+
+  getChats = async (req, res, next) => { try { res.json(await AIService.getChats(req.user.userId)); } catch (error) { next(error); } };
+  getMessages = async (req, res, next) => { try { res.json(await AIService.getMessages(req.user.userId, req.params.chatId)); } catch (error) { next(error); } };
+  renameChat = async (req, res, next) => { try { res.json(await AIService.renameChat(req.user.userId, req.params.chatId, req.body.title)); } catch (error) { next(error); } };
+  deleteChat = async (req, res, next) => { try { await AIService.deleteChat(req.user.userId, req.params.chatId); res.status(204).end(); } catch (error) { next(error); } };
+  getUsage = async (req, res, next) => { try { res.json(await AIService.getUsage(req.user.userId)); } catch (error) { next(error); } };
 }
 
 export default new AIController();

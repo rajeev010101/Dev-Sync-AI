@@ -11,6 +11,7 @@ import connectDatabase from "./database/connectDatabase.js";
 import {
   registerNotificationSocket,
 } from "./modules/notifications/notification.socket.js";
+import { registerAISocket } from "./socket/ai.socket.js";
 
 import startSchedulers from "./scheduler/index.js";
 
@@ -57,6 +58,7 @@ const startServer = async () => {
      * Register Socket Modules
      */
     registerNotificationSocket(io);
+    registerAISocket(io);
 
     /**
      * Make Socket.IO globally available

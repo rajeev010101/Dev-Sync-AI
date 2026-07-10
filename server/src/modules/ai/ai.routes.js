@@ -12,6 +12,12 @@ router.post(
   AIController.createChat
 );
 
+router.get("/chats", authenticate, AIController.getChats);
+router.get("/chat/:chatId/messages", authenticate, AIController.getMessages);
+router.patch("/chat/:chatId", authenticate, AIController.renameChat);
+router.delete("/chat/:chatId", authenticate, AIController.deleteChat);
+router.get("/usage", authenticate, AIController.getUsage);
+
 router.post(
   "/chat/message",
   authenticate,
