@@ -6,5 +6,6 @@ export const ROUTES = Object.freeze({
   resetPassword: '/auth/reset-password',
   dashboard: '/dashboard',
   aiWorkspace: '/dashboard/ai',
+  uploads: '/dashboard/uploads',
   notFound: '/404',
 })

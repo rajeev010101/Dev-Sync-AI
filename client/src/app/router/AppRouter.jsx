@@ -10,6 +10,8 @@ import { Register } from '@/pages/Auth/Register'
 import { ForgotPassword } from '@/pages/Auth/ForgotPassword'
 import { ResetPassword } from '@/pages/Auth/ResetPassword'
 import { DashboardHome } from '@/pages/Dashboard/DashboardHome'
+import { AIWorkspace } from '@/pages/AI/AIWorkspace'
+import { UploadCenter } from '@/pages/Uploads/UploadCenter'
 
 export function AppRouter() {
   return (
@@ -27,6 +29,8 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
+            <Route path="ai" element={<AIWorkspace />} />
+            <Route path="uploads" element={<UploadCenter />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFoundRoute />} />
