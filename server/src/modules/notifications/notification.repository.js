@@ -53,6 +53,16 @@ class NotificationRepository {
       }
     );
   }
+
+  async deleteNotification(
+    notificationId,
+    userId
+  ) {
+    return Notification.findOneAndDelete({
+      _id: notificationId,
+      user: userId
+    });
+  }
 }
 
 export default new NotificationRepository();

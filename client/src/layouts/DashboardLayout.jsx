@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux'
 import { AppShell } from '@/components/layout/AppShell'
 import { DashboardNavbar } from '@/components/layout/DashboardNavbar'
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar'
+import { NotificationDrawer } from '@/components/notifications/NotificationDrawer'
 import { selectCurrentUserRole } from '@/features/auth/authSelectors'
 
 export function DashboardLayout() {
@@ -19,6 +20,7 @@ export function DashboardLayout() {
         <div className="min-w-0 flex-1">
           <DashboardNavbar onOpenNavigation={() => setMobileOpen(true)} />
           <main className="p-4 sm:p-6"><Outlet /></main>
+          <NotificationDrawer />
         </div>
       </div>
     </AppShell>

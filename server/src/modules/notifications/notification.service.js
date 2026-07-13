@@ -54,6 +54,16 @@ class NotificationService {
       userId
     );
   }
+
+  async deleteNotification(
+    id,
+    userId
+  ) {
+    return NotificationRepository.deleteNotification(
+      id,
+      userId
+    );
+  }
 }
 
 export default new NotificationService();

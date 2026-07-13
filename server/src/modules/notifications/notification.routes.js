@@ -34,4 +34,10 @@ router.patch(
   NotificationController.markAllRead
 );
 
+router.delete(
+  "/:id",
+  authenticate,
+  NotificationController.deleteNotification
+);
+
 export default router;

@@ -89,6 +89,29 @@ class NotificationController {
         next(error);
       }
     };
+
+  deleteNotification =
+    async (
+      req,
+      res,
+      next
+    ) => {
+      try {
+        const notification =
+          await NotificationService.deleteNotification(
+            req.params.id,
+            req.user.userId
+          );
+
+        res.json(
+          notification
+        );
+      } catch (
+        error
+      ) {
+        next(error);
+      }
+    };
 }
 
 export default new NotificationController();
